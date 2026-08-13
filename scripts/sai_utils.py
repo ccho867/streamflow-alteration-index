@@ -58,11 +58,11 @@ def standardize_region_column(signals_df: pd.DataFrame) -> pd.DataFrame:
     out = signals_df.copy()
     out.columns = [str(col).replace("\ufeff", "").strip() for col in out.columns]
 
-    if "Region" not in out.columns:
-        raise ValueError("Missing required column 'Region' in alteration signals CSV.")
+    if "SSDA_NM" not in out.columns:
+        raise ValueError("Missing required column 'SSDA_NM' in alteration signals CSV.")
 
-    out["Region"] = (
-        out["Region"]
+    out["SSDA_NM"] = (
+        out["SSDA_NM"]
         .astype(str)
         .str.replace("\ufeff", "", regex=False)
         .str.strip()
@@ -78,7 +78,7 @@ def read_region_inputs(
     signals_csv_name: str,
 ) -> tuple[gpd.GeoDataFrame, gpd.GeoDataFrame, pd.DataFrame]:
     data_dir = project_root / "data"
-    region_dir = data_dir / "OLRRPv2" / region
+    region_dir = data_dir / "CLRH" / region
 
     subbasin_shp = region_dir / f"finalcat_info_{olrrp_version}.shp"
     river_shp = region_dir / f"finalcat_info_riv_{olrrp_version}.shp"
@@ -98,7 +98,7 @@ def read_region_inputs(
     signals_df = standardize_region_column(signals_df)
 
     required_cols = [
-        "Region", "SubId", "Lat", "Lon", "Level_I", "Level_II",
+        "SSDA_NM", "SubId", "Lat", "Lon", "Level_I", "Level_II",
     ]
     missing_cols = [col for col in required_cols if col not in signals_df.columns]
     if missing_cols:
@@ -109,11 +109,11 @@ def read_region_inputs(
     signals_df["Level_II"] = pd.to_numeric(signals_df["Level_II"], errors="coerce").fillna(0).astype(int)
 
     region_clean = region.strip().upper()
-    signals_region_df = signals_df.loc[signals_df["Region"] == region_clean].copy()
+    signals_region_df = signals_df.loc[signals_df["SSDA_NM"] == region_clean].copy()
 
     if signals_region_df.empty:
         all_regions = sorted(
-            signals_df["Region"]
+            signals_df["SSDA_NM"]
             .dropna()
             .astype(str)
             .str.strip()
@@ -123,11 +123,11 @@ def read_region_inputs(
         )
         raise ValueError(
             f"No alteration signals found for region '{region_clean}' in {signals_csv.name}. "
-            f"Available Region values are: {all_regions}"
+            f"Available SSDA_NM values are: {all_regions}"
         )
 
-    if "Subregion" not in subbasin_info.columns:
-        subbasin_info["Subregion"] = ""
+    if "SDA_NM" not in subbasin_info.columns:
+        subbasin_info["SDA_NM"] = ""
 
     return subbasin_info, river_info, signals_region_df
 
@@ -236,8 +236,8 @@ def attach_sai_to_rivers(
 def select_subbasin_output_columns(subbasin_info: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
     candidate_cols = [
         "geometry",
-        "Region",
-        "Subregion",
+        "SSDA_NM",
+        "SDA_NM",
         "SubId",
         "DowSubId",
         "BasArea",
@@ -252,8 +252,8 @@ def select_subbasin_output_columns(subbasin_info: gpd.GeoDataFrame) -> gpd.GeoDa
 def select_river_output_columns(river_info: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
     candidate_cols = [
         "geometry",
-        "Region",
-        "Subregion",
+        "SSDA_NM",
+        "SDA_NM",
         "SubId",
         "DowSubId",
         "SAI_I",

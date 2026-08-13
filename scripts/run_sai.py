@@ -7,19 +7,19 @@ from sai_utils import run_sai_for_region
 
 
 def parse_args() -> argparse.Namespace:
-    default_region = "SE"
-    default_olrrp_version = "v2-0"
+    default_region = "02_02"
+    default_olrrp_version = "v1-1"
     default_export_crs = "EPSG:4269"
-    default_signals_csv_name = "ontario_alteration_signals.csv"
+    default_signals_csv_name = "CLRH_ontario_alteration.csv"
 
     parser = argparse.ArgumentParser(
-        description="Calculate Streamflow Alteration Index (SAI_I and SAI_II) for one OLRRP region."
+        description="Calculate Streamflow Alteration Index (SAI_I and SAI_II) for one CLRH name code (SSDA_NM)."
     )
     parser.add_argument(
         "--region",
         type=str,
         default=default_region,
-        help="Region code, e.g., SE, SW, NE, NW, NC, FNE, FNW, FNC1, FNC2",
+        help="Name code: SSDA_NM in CLRH",
     )
     parser.add_argument(
         "--olrrp-version",
