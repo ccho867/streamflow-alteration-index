@@ -3,23 +3,23 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-from sai_utils import run_sai_for_region
+from sai_utils_clrh import run_sai_for_region
 
 
 def parse_args() -> argparse.Namespace:
-    default_region = "02_02"
+    default_region = "02"
     default_olrrp_version = "v1-1"
     default_export_crs = "EPSG:4269"
     default_signals_csv_name = "CLRH_ontario_alteration.csv"
 
     parser = argparse.ArgumentParser(
-        description="Calculate Streamflow Alteration Index (SAI_I and SAI_II) for one CLRH name code (SSDA_NM)."
+        description="Calculate Streamflow Alteration Index (SAI_I and SAI_II) for one CLRH name code (DA_NM)."
     )
     parser.add_argument(
         "--region",
         type=str,
         default=default_region,
-        help="Name code: SSDA_NM in CLRH",
+        help="Name code: DA_NM in CLRH",
     )
     parser.add_argument(
         "--olrrp-version",

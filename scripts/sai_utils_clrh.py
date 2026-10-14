@@ -13,7 +13,7 @@ def ensure_dir(path: Path) -> None:
 
 
 def remove_existing_shapefile(shp_path: Path) -> None:
-    for ext in [".shp", ".shx", ".dbf", ".prj", ".cpg"]:
+    for ext in [".gpkg", ".shp", ".shx", ".dbf", ".prj", ".cpg"]:
         candidate = shp_path.with_suffix(ext)
         if candidate.exists():
             candidate.unlink()
@@ -58,11 +58,11 @@ def standardize_region_column(signals_df: pd.DataFrame) -> pd.DataFrame:
     out = signals_df.copy()
     out.columns = [str(col).replace("\ufeff", "").strip() for col in out.columns]
 
-    if "SSDA_NM" not in out.columns:
-        raise ValueError("Missing required column 'SSDA_NM' in alteration signals CSV.")
+    if "DA_NM" not in out.columns:
+        raise ValueError("Missing required column 'DA_NM' in alteration signals CSV.")
 
-    out["SSDA_NM"] = (
-        out["SSDA_NM"]
+    out["DA_NM"] = (
+        out["DA_NM"]
         .astype(str)
         .str.replace("\ufeff", "", regex=False)
         .str.strip()
@@ -80,8 +80,8 @@ def read_region_inputs(
     data_dir = project_root / "data"
     region_dir = data_dir / "CLRH" / region
 
-    subbasin_shp = region_dir / f"finalcat_info_{olrrp_version}.shp"
-    river_shp = region_dir / f"finalcat_info_riv_{olrrp_version}.shp"
+    subbasin_shp = region_dir / f"finalcat_info_{olrrp_version}.gpkg"
+    river_shp = region_dir / f"finalcat_info_riv_{olrrp_version}.gpkg"
     signals_csv = data_dir / signals_csv_name
 
     if not subbasin_shp.exists():
@@ -98,7 +98,7 @@ def read_region_inputs(
     signals_df = standardize_region_column(signals_df)
 
     required_cols = [
-        "SSDA_NM", "SubId", "Lat", "Lon", "Level_I", "Level_II",
+        "DA_NM", "SubId", "Lat", "Lon", "Level_I", "Level_II",
     ]
     missing_cols = [col for col in required_cols if col not in signals_df.columns]
     if missing_cols:
@@ -109,11 +109,11 @@ def read_region_inputs(
     signals_df["Level_II"] = pd.to_numeric(signals_df["Level_II"], errors="coerce").fillna(0).astype(int)
 
     region_clean = region.strip().upper()
-    signals_region_df = signals_df.loc[signals_df["SSDA_NM"] == region_clean].copy()
+    signals_region_df = signals_df.loc[signals_df["DA_NM"] == region_clean].copy()
 
     if signals_region_df.empty:
         all_regions = sorted(
-            signals_df["SSDA_NM"]
+            signals_df["DA_NM"]
             .dropna()
             .astype(str)
             .str.strip()
@@ -123,11 +123,14 @@ def read_region_inputs(
         )
         raise ValueError(
             f"No alteration signals found for region '{region_clean}' in {signals_csv.name}. "
-            f"Available SSDA_NM values are: {all_regions}"
+            f"Available DA_NM values are: {all_regions}"
         )
 
     if "SDA_NM" not in subbasin_info.columns:
         subbasin_info["SDA_NM"] = ""
+
+    if "SSDA_NM" not in subbasin_info.columns:
+        subbasin_info["SSDA_NM"] = ""
 
     return subbasin_info, river_info, signals_region_df
 
@@ -236,8 +239,9 @@ def attach_sai_to_rivers(
 def select_subbasin_output_columns(subbasin_info: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
     candidate_cols = [
         "geometry",
-        "SSDA_NM",
+        "DA_NM",
         "SDA_NM",
+        "SSDA_NM",
         "SubId",
         "DowSubId",
         "BasArea",
@@ -252,8 +256,9 @@ def select_subbasin_output_columns(subbasin_info: gpd.GeoDataFrame) -> gpd.GeoDa
 def select_river_output_columns(river_info: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
     candidate_cols = [
         "geometry",
-        "SSDA_NM",
+        "DA_NM",
         "SDA_NM",
+        "SSDA_NM",
         "SubId",
         "DowSubId",
         "SAI_I",
@@ -277,14 +282,14 @@ def write_outputs(
         subbasin_out = subbasin_out.to_crs(export_crs)
         river_out = river_out.to_crs(export_crs)
 
-    subbasin_shp = output_region_dir / f"{region}_subbasin_sai.shp"
-    river_shp = output_region_dir / f"{region}_river_sai.shp"
+    subbasin_shp = output_region_dir / f"{region}_subbasin_sai.gpkg"
+    river_shp = output_region_dir / f"{region}_river_sai.gpkg"
 
     remove_existing_shapefile(subbasin_shp)
     remove_existing_shapefile(river_shp)
 
-    subbasin_out.to_file(subbasin_shp, driver="ESRI Shapefile", encoding="utf-8", engine="pyogrio")
-    river_out.to_file(river_shp, driver="ESRI Shapefile", encoding="utf-8", engine="pyogrio")
+    subbasin_out.to_file(subbasin_shp, driver="GPKG", encoding="utf-8", engine="pyogrio")
+    river_out.to_file(river_shp, driver="GPKG", encoding="utf-8", engine="pyogrio")
 
     print(f"Saved: {subbasin_shp}")
     print(f"Saved: {river_shp}")

@@ -11,19 +11,24 @@ dams_gdf = gpd.GeoDataFrame(dams, geometry=gpd.points_from_xy(dams.Lon, dams.Lat
 # remove region and SubId for replacement
 dams_gdf = dams_gdf.drop(columns = ["Region", "SubId"]).to_crs("ESRI:102001")
 
-# 02O basin file
-clrh_02_02 = gpd.read_file("data/CLRH/02O/finalcat_info_v1-1.shp")
-clrh_02_02_small = clrh_02_02[["SubId", "SSDA_NM", "SDA_NM", "geometry"]]
+#ontario could include: nelson, 04, 03, 02
+#read all basins in and merge
+basin_02 = gpd.read_file("data/CLRH/02/finalcat_info_v1-1.gpkg").loc[:,["geometry", "SubId", "DA_NM"]]
+basin_04 = gpd.read_file("data/CLRH/04/finalcat_info_v1-1.gpkg").loc[:,["geometry", "SubId", "DA_NM"]]
+basin_nelson = gpd.read_file("data/CLRH/nelson/finalcat_info_v1-1.gpkg").loc[:,["geometry", "SubId", "DA_NM"]]
 
-## 02h basin file
-# clrh_02_01 = gpd.read_file("data/CLRH/02H/finalcat_info_v1-1.shp")
-# clrh_02_01_small = clrh_02H[["SubId", "SSDA_NM", "SDA_NM", "geometry"]]
+# combine them
+merged = pd.concat([basin_02, basin_04, basin_nelson])
 
 # spatial join cols to dams
-dams_sub = dams_gdf.sjoin(clrh_02_02_small, how = "left")
+dams_sub = dams_gdf.sjoin(merged, how = "left")
 
 # filter NAs, reorder cols
+# unsure why there would be na's, look into this
 dams_out = dams_sub.dropna(axis = 0).drop(columns = ["index_right", "geometry"])
+
+#SubID needs to be an integer
+dams_out["SubId"] = dams_out["SubId"].astype(int)
 
 # write output
 dams_out.to_csv('data/CLRH_ontario_alteration.csv', index = False)
