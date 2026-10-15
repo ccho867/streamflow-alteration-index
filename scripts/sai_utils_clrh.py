@@ -94,7 +94,7 @@ def read_region_inputs(
     subbasin_info = gpd.read_file(subbasin_shp, encoding="utf-8", engine="pyogrio")
     river_info = gpd.read_file(river_shp, encoding="utf-8", engine="pyogrio")
 
-    signals_df = pd.read_csv(signals_csv)
+    signals_df = pd.read_csv(signals_csv, dtype={"SubID": int, "DA_NM": str})
     signals_df = standardize_region_column(signals_df)
 
     required_cols = [

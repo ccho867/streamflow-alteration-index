@@ -21,7 +21,7 @@ os.makedirs(extract_folder, exist_ok=True)
 # note that Nelson (05) is just called nelson and is only 1 in clrh
 # mackenzie is listed on its own as well even though it is technically 07 and part of 10
 # das = ["01", "02", "03", "04", "06", "08", "09", "10", "11", "Mackenzie", "Nelson"]
-das = ["02", "04", "Nelson"]
+das = ["08"]
 shpnames = ["finalcat_info_v1-1.shp", "finalcat_info_riv_v1-1.shp", "poi_v1-1.shp", "CanHydroFabric_SSDA.shp", "CanHydroFabric_SDA.shp"]
 
 

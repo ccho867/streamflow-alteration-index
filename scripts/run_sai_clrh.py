@@ -10,7 +10,7 @@ def parse_args() -> argparse.Namespace:
     default_region = "02"
     default_olrrp_version = "v1-1"
     default_export_crs = "EPSG:4269"
-    default_signals_csv_name = "CLRH_ontario_alteration.csv"
+    default_signals_csv_name = "CLRH_bc_alteration_signals.csv"
 
     parser = argparse.ArgumentParser(
         description="Calculate Streamflow Alteration Index (SAI_I and SAI_II) for one CLRH name code (DA_NM)."
